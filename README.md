@@ -3,7 +3,7 @@
 
 ## Features
 
- WebCrawler should be executed with two arguments­: the URL of the root page, and the recursion depth limit (a positive integer).
+ WebCrawler should be executed with two arguments­: The URL of the root page, and the recursion depth limit (a positive integer).
 
  Only text/html pages are processed, being downloaded to a temp directory and their links are examined. A depth limit of 1 means that only the URL given to WebCrawler upon execution will be processed.
 
