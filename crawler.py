@@ -6,7 +6,7 @@ __version__ = '1.0'
 import sys
 try:
   import optparse, os, time, re, requests, traceback
-  from bs4 import BeautifulSoup, SoupStrainer #is this better than import bs4?
+  from bs4 import BeautifulSoup, SoupStrainer
 except ImportError:
   print >> sys.stderr, "\nPython %s\n\nModule import error:\n%s\n" % (sys.version, sys.exc_value)
   sys.exit(1)
@@ -100,7 +100,7 @@ except KeyboardInterrupt, e:
   print "\nStopped. (Run again to resume)"
 print "\nPlease wait while saving gathered rates..."
 with open(outputfile, 'w') as f:
-  for item in list(reversed(rated_list)): #Get depth 1 first.
+  for item in tuple(reversed(rated_list)): #Get depth 1 first.
     f.write(item+"\n") #Had the list built from file upon resumption it wouldn't have the "\n". That's why I don't include it in the list itself.
 print "\nOutput file is %s\n" % (outputfile)
 
