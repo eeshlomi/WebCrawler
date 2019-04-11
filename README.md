@@ -7,8 +7,8 @@
 
  Only text/html pages are processed, being downloaded to a temp directory and their links are examined. A depth limit of 1 means that only the URL given to WebCrawler upon execution will be processed.
 
- If a page has, for example, 4 same--domain links and 1 external link, then its ratio will be 0.8.
+ If a page has, for example, 4 same-domain links and 1 external link, then its ratio will be 0.8.
 
- Has the WebCrawler terminated by the user (Ctrl+C), It caches the collected info to be resumed at the next run.
+ When WebCrawler is terminated by the user (Ctrl+C), collected info is cached, to be resumed at the next run.
 
  The output is a Tab Separated File, containing URL, depth, and ratio.
