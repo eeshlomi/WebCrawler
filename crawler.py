@@ -12,7 +12,7 @@ except ImportError:
     sys.exit(1)
 
 def crawler(url, depth, processed_list, rated_list):
-    _depth = 1 + int(sys.argv[2])
+    _depth = 1 + int(sys.argv[2]) - depth
     print ("%s (%d): Checking..." % (url, _depth))
     processed_list.append(url)
     try:
