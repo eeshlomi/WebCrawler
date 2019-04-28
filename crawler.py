@@ -10,8 +10,8 @@ try:
 except ImportError:
     sys.exit("\nPython %s\n\nModule import error:\n%s\n" % (sys.version, sys.exc_info()[1]))
 
-def crawler(url, depth, processed_list, rated_list):
-    _depth = 1 + int_depth - depth
+def crawler_run(url, orig_depth, cur_depth, processed_list, rated_list):
+    _depth = 1 + orig_depth - cur_depth
     print ("%s (%d): Checking..." % (url, _depth))
     processed_list.append(url)
     try:
@@ -42,7 +42,7 @@ def crawler(url, depth, processed_list, rated_list):
         r = requests.get(url, allow_redirects=True)
         open(cachefile, 'w').write(r.content)
     print ("%s (%d): Extracting links..." % (url, _depth))
-    _next_depth = depth-1
+    _next_depth = cur_depth-1
     _intern_cnt = 0
     _extern_cnt = 0
     with open(cachefile,'r') as f:
@@ -55,7 +55,7 @@ def crawler(url, depth, processed_list, rated_list):
                 else:
                     _extern_cnt += 1
                     try:
-                        if (_next_depth > 0) and _next_url not in processed_list: print (crawler(_next_url, _next_depth, processed_list, rated_list))
+                        if (_next_depth > 0) and _next_url not in processed_list: print (crawler_run(_next_url, orig_depth, _next_depth, processed_list, rated_list))
                     except Exception: #For a non-handled error, show Traceback and continue the recursion:
                         print (traceback.format_exc())
         try:
@@ -64,7 +64,7 @@ def crawler(url, depth, processed_list, rated_list):
             _ratio=1
         rated_list.append("%s\t%d\t%s" % (url, _depth, _ratio))
         return "%s (%d) Finished." % (url, _depth)
-def run_crawler(url, depth):
+def crawler(url, depth):
     os.path.isdir("tmp_output") or os.mkdir("tmp_output")
     os.path.isdir("tmp_cache") or os.mkdir("tmp_cache")
     outputfile = "tmp_output/"+url.split('#|\?')[0].split("//")[-1].replace("/", "_")+"_"+str(depth)+".output"
@@ -78,18 +78,17 @@ def run_crawler(url, depth):
                 rated_list.insert(0, line.split('\n')[0]) #List is reversed upon save-to-disk
     url = re.split('#|\?',url)[0]
     try:
-        if (depth > 0) and url not in processed_list: print (crawler(url, depth, processed_list, rated_list))
+        if (depth > 0) and url not in processed_list: print (crawler_run(url, depth, depth, processed_list, rated_list))
     except KeyboardInterrupt:
         print ("\nStopped. (Run again to resume)")
     print ("\nPlease wait while saving gathered rates...")
     with open(outputfile, 'w') as f:
         for item in tuple(reversed(rated_list)): #Get depth 1 first.
             f.write(item+"\n") #Had the list built from file upon resumption it wouldn't have the "\n". That's why I don't include it in the list itself.
-    print ("\nOutput file is %s\n" % (outputfile))
+    return ("\nOutput file is %s\n" % (outputfile))
 if __name__ == '__main__':
     if len(sys.argv) != 3: sys.exit("Please run: %s <url> <depth>" % (sys.argv[0]))
     try:
-        int_depth = int(sys.argv[2])
+        print (crawler(sys.argv[1], int(sys.argv[2])))
     except ValueError:
         sys.exit("<depth> must be integer")
-    run_crawler(sys.argv[1], int_depth)
