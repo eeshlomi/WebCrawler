@@ -12,7 +12,7 @@ except ImportError:
     sys.exit(1)
 
 def crawler(url, depth, processed_list, rated_list):
-    _depth = 1+orig_depth-depth
+    _depth = 1 + int(sys.argv[2])
     print ("%s (%d): Checking..." % (url, _depth))
     processed_list.append(url)
     try:
@@ -88,6 +88,8 @@ def run_crawler(url, depth):
             f.write(item+"\n") #Had the list built from file upon resumption it wouldn't have the "\n". That's why I don't include it in the list itself.
     print ("\nOutput file is %s\n" % (outputfile))
 if __name__ == '__main__':
-    #run_crawler(sys.argv[1], sys.argv[2])
-    orig_depth=2
-    run_crawler("http://man7.org/", orig_depth)
+    if len(sys.argv) != 3: sys.exit("Please run: %s <url> <depth>" % (sys.argv[0]))
+    try:
+        run_crawler(sys.argv[1], int(sys.argv[2]))
+    except ValueError:
+        sys.exit("<depth> must be an integer")
