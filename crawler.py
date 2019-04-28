@@ -8,11 +8,10 @@ try:
     import os, time, re, requests, traceback
     from bs4 import BeautifulSoup, SoupStrainer
 except ImportError:
-    print ("\nPython %s\n\nModule import error:\n%s\n" % (sys.version, sys.exc_info()[1]))
-    sys.exit(1)
+    sys.exit("\nPython %s\n\nModule import error:\n%s\n" % (sys.version, sys.exc_info()[1]))
 
 def crawler(url, depth, processed_list, rated_list):
-    _depth = 1 + int(sys.argv[2]) - depth
+    _depth = 1 + int_depth - depth
     print ("%s (%d): Checking..." % (url, _depth))
     processed_list.append(url)
     try:
@@ -90,6 +89,7 @@ def run_crawler(url, depth):
 if __name__ == '__main__':
     if len(sys.argv) != 3: sys.exit("Please run: %s <url> <depth>" % (sys.argv[0]))
     try:
-        run_crawler(sys.argv[1], int(sys.argv[2]))
+        int_depth = int(sys.argv[2])
     except ValueError:
-        sys.exit("<depth> must be an integer")
+        sys.exit("<depth> must be integer")
+    run_crawler(sys.argv[1], int_depth)
