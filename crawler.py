@@ -5,29 +5,14 @@ __version__ = '1.0'
 
 import sys
 try:
-    import optparse, os, time, re, requests, traceback
+    import os, time, re, requests, traceback
     from bs4 import BeautifulSoup, SoupStrainer
 except ImportError:
     print ("\nPython %s\n\nModule import error:\n%s\n" % (sys.version, sys.exc_info()[1]))
     sys.exit(1)
 
-conf = {'url': None, 'depth': None}
-
-def cli_reader():
-    optp = optparse.OptionParser()
-    optp.add_option('-u', '--url', help='URL of the root page', dest='url')
-    optp.add_option('-d', help='recursion depth limit', dest='depth', type="int")
-    opts, sys.args = optp.parse_args()
-    if opts.url and opts.depth:
-        conf['url'] = opts.url
-        conf['depth'] = opts.depth
-    else:
-        print >> sys.stderr, "A url and depth are required!"
-        optp.print_help()
-        sys.exit(1)
-
-def crawler(url, depth):
-    _depth = 1+conf['depth']-depth
+def crawler(url, depth, processed_list, rated_list):
+    _depth = 1+orig_depth-depth
     print ("%s (%d): Checking..." % (url, _depth))
     processed_list.append(url)
     try:
@@ -71,7 +56,7 @@ def crawler(url, depth):
                 else:
                     _extern_cnt += 1
                     try:
-                        if (_next_depth > 0) and _next_url not in processed_list: print (crawler(_next_url, _next_depth))
+                        if (_next_depth > 0) and _next_url not in processed_list: print (crawler(_next_url, _next_depth, processed_list, rated_list))
                     except Exception: #For a non-handled error, show Traceback and continue the recursion:
                         print (traceback.format_exc())
         try:
@@ -80,27 +65,29 @@ def crawler(url, depth):
             _ratio=1
         rated_list.append("%s\t%d\t%s" % (url, _depth, _ratio))
         return "%s (%d) Finished." % (url, _depth)
-
-cli_reader()
-os.path.isdir("tmp_output") or os.mkdir("tmp_output")
-os.path.isdir("tmp_cache") or os.mkdir("tmp_cache")
-outputfile = "tmp_output/"+conf['url'].split('#|\?')[0].split("//")[-1].replace("/", "_")+"_"+str(conf['depth'])+".output"
-processed_list = [] #Differs from rated_list, being created immediately to prevent re-processing the same URL within recursion.
-rated_list = []
-if os.path.isfile(outputfile):
-    print ("\nAn output file was found, resuming...\n")
-    with open(outputfile) as f:
-        for line in f:
-            processed_list.append(line.split('\t')[0])
-            rated_list.insert(0, line.split('\n')[0]) #List is reversed upon save-to-disk
-url = re.split('#|\?',conf['url'])[0]
-try:
-    if (conf['depth'] > 0) and url not in processed_list: print (crawler(url, conf['depth']))
-except (KeyboardInterrupt):
-    print ("\nStopped. (Run again to resume)")
-print ("\nPlease wait while saving gathered rates...")
-with open(outputfile, 'w') as f:
-    for item in tuple(reversed(rated_list)): #Get depth 1 first.
-        f.write(item+"\n") #Had the list built from file upon resumption it wouldn't have the "\n". That's why I don't include it in the list itself.
-print ("\nOutput file is %s\n" % (outputfile))
-
+def run_crawler(url, depth):
+    os.path.isdir("tmp_output") or os.mkdir("tmp_output")
+    os.path.isdir("tmp_cache") or os.mkdir("tmp_cache")
+    outputfile = "tmp_output/"+url.split('#|\?')[0].split("//")[-1].replace("/", "_")+"_"+str(depth)+".output"
+    processed_list = []
+    rated_list = []
+    if os.path.isfile(outputfile):
+        print ("\nAn output file was found, resuming...\n")
+        with open(outputfile) as f:
+            for line in f:
+                processed_list.append(line.split('\t')[0])
+                rated_list.insert(0, line.split('\n')[0]) #List is reversed upon save-to-disk
+    url = re.split('#|\?',url)[0]
+    try:
+        if (depth > 0) and url not in processed_list: print (crawler(url, depth, processed_list, rated_list))
+    except KeyboardInterrupt:
+        print ("\nStopped. (Run again to resume)")
+    print ("\nPlease wait while saving gathered rates...")
+    with open(outputfile, 'w') as f:
+        for item in tuple(reversed(rated_list)): #Get depth 1 first.
+            f.write(item+"\n") #Had the list built from file upon resumption it wouldn't have the "\n". That's why I don't include it in the list itself.
+    print ("\nOutput file is %s\n" % (outputfile))
+if __name__ == '__main__':
+    #run_crawler(sys.argv[1], sys.argv[2])
+    orig_depth=2
+    run_crawler("http://man7.org/", orig_depth)
