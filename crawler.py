@@ -86,12 +86,14 @@ def crawler_run(url, orig_depth, cur_depth, processed_list, rated_list):
 
 
 def crawler(url, depth):
+    url = re.split(r'#|\?', url)[0]
     # The following is for returning the proper filename:
     if url[-1] == "/":
         url = url[:len(url)-1]
     os.path.isdir("tmp_output") or os.mkdir("tmp_output")
     os.path.isdir("tmp_cache") or os.mkdir("tmp_cache")
-    outputfile = "tmp_output/"+url.split(r'#|\?')[0].split("//")[-1].replace("/", "_")+"_"+str(depth)+".output"
+    outputfile = "tmp_output/" + url.split("//")[-1].replace("/", "_")
+    outputfile += "_" + str(depth) + ".output"
     processed_list = []
     rated_list = []
     if os.path.isfile(outputfile):
@@ -101,7 +103,6 @@ def crawler(url, depth):
                 processed_list.append(line.split('\t')[0])
                 # rated_list is reversed upon save-to-disk:
                 rated_list.insert(0, line.split('\n')[0])
-    url = re.split(r'#|\?', url)[0]
     try:
         if(depth > 0) and url not in processed_list:
             print(crawler_run(url, depth, depth, processed_list, rated_list))
