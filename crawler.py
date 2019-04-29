@@ -69,7 +69,8 @@ def crawler_run(url, orig_depth, cur_depth, processed_list, rated_list):
                     try:
                         if(_next_depth > 0) and _next_url not in processed_list:
                             print(crawler_run(_next_url, orig_depth, _next_depth, processed_list, rated_list))
-                    # For a non-handled error, show Traceback and continue the recursion:
+                    # For a non-handled error,
+                    # show Traceback and continue the recursion:
                     except Exception:
                         print(traceback.format_exc())
         try:
@@ -103,7 +104,7 @@ def crawler(url, depth):
     with open(outputfile, 'w') as f:
         for item in tuple(reversed(rated_list)):  # Get depth 1 first.
             ''' Had the list been built from file upon resumption,
-            it wouldn't have the "\n".
+            it wouldn't have had the "\n".
             That's why I don't include it in the list itself: '''
             f.write(item+"\n")
     return("\nOutput file is %s\n" % (outputfile))
