@@ -17,6 +17,10 @@ except ImportError:
 
 
 def crawler_run(url, orig_depth, cur_depth, processed_list, rated_list):
+    # By stripping the optional trailing "/",
+    # we use the cache more efficiently:
+    if url[-1] == "/":
+        url = url[:len(url)-1]
     _depth = 1 + orig_depth - cur_depth
     print("%s(%d): Checking..." % (url, _depth))
     processed_list.append(url)
@@ -82,6 +86,9 @@ def crawler_run(url, orig_depth, cur_depth, processed_list, rated_list):
 
 
 def crawler(url, depth):
+    # The following is for returning the proper filename:
+    if url[-1] == "/":
+        url = url[:len(url)-1]
     os.path.isdir("tmp_output") or os.mkdir("tmp_output")
     os.path.isdir("tmp_cache") or os.mkdir("tmp_cache")
     outputfile = "tmp_output/"+url.split(r'#|\?')[0].split("//")[-1].replace("/", "_")+"_"+str(depth)+".output"
