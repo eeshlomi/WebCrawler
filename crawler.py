@@ -56,7 +56,7 @@ def c_run(url, o_depth, c_depth, skip, rated):
                 tslocal = 0
         except ValueError:
             msg = "%s(%d): Unknown format %s, giving a 24-hour TTL."
-            print("%s(%d): ." % (url, _depth, t_string))
+            print(msg % (url, _depth, t_string))
             if(tslocal + 86400) < time.time():
                 tslocal = 0
     # Also true if both are the same, because of the download timestamp:
