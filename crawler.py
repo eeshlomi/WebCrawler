@@ -16,14 +16,14 @@ except ImportError:
     sys.exit(msg % (sys.version, sys.exc_info()[1]))
 
 
-def crawler_run(url, orig_depth, cur_depth, processed_list, rated_list):
+def c_run(url, o_depth, c_depth, skip, rated):
     # By stripping the optional trailing "/",
     # we use the cache more efficiently:
     if url[-1] == "/":
         url = url[:len(url)-1]
-    _depth = 1 + orig_depth - cur_depth
+    _depth = 1 + o_depth - c_depth
     print("%s(%d): Checking..." % (url, _depth))
-    processed_list.append(url)
+    skip.append(url)
     try:
         r = requests.head(url, allow_redirects=True)
         if r.headers['content-type'][:9] != "text/html":
@@ -58,21 +58,21 @@ def crawler_run(url, orig_depth, cur_depth, processed_list, rated_list):
         r = requests.get(url, allow_redirects=True)
         open(cachefile, 'wb').write(r.content)
     print("%s(%d): Extracting links..." % (url, _depth))
-    _next_depth = cur_depth-1
+    n_depth = c_depth-1
     _intern_cnt = 0
     _extern_cnt = 0
     with open(cachefile, 'r') as f:
         for link in BeautifulSoup(f.read(), parse_only=SoupStrainer('a'), features='html.parser'):
             if link.has_attr('href'):
-                _next_url = re.split(r'#|\?', link['href'])[0]
-                _next_domain = _next_url.split("//")[-1].split("/")[0]
-                if _next_domain == domain or link['href'][:4] != "http":
+                n_url = re.split(r'#|\?', link['href'])[0]
+                n_domain = n_url.split("//")[-1].split("/")[0]
+                if n_domain == domain or link['href'][:4] != "http":
                     _intern_cnt += 1
                 else:
                     _extern_cnt += 1
                     try:
-                        if(_next_depth > 0) and _next_url not in processed_list:
-                            print(crawler_run(_next_url, orig_depth, _next_depth, processed_list, rated_list))
+                        if(n_depth > 0) and n_url not in skip:
+                            print(c_run(n_url, o_depth, n_depth, skip, rated))
                     # For a non-handled error,
                     # show Traceback and continue the recursion:
                     except Exception:
@@ -81,7 +81,7 @@ def crawler_run(url, orig_depth, cur_depth, processed_list, rated_list):
             _ratio = round(float(_intern_cnt) / (_intern_cnt + _extern_cnt), 2)
         except ZeroDivisionError:
             _ratio = 1
-        rated_list.append("%s\t%d\t%s" % (url, _depth, _ratio))
+        rated.append("%s\t%d\t%s" % (url, _depth, _ratio))
         return "%s(%d) Finished." % (url, _depth)
 
 
@@ -94,23 +94,23 @@ def crawler(url, depth):
     os.path.isdir("tmp_cache") or os.mkdir("tmp_cache")
     outputfile = "tmp_output/" + url.split("//")[-1].replace("/", "_")
     outputfile += "_" + str(depth) + ".output"
-    processed_list = []
-    rated_list = []
+    skip = []
+    rated = []
     if os.path.isfile(outputfile):
         print("\nAn output file was found, resuming...\n")
         with open(outputfile) as f:
             for line in f:
-                processed_list.append(line.split('\t')[0])
-                # rated_list is reversed upon save-to-disk:
-                rated_list.insert(0, line.split('\n')[0])
+                skip.append(line.split('\t')[0])
+                # rated is reversed upon save-to-disk:
+                rated.insert(0, line.split('\n')[0])
     try:
-        if(depth > 0) and url not in processed_list:
-            print(crawler_run(url, depth, depth, processed_list, rated_list))
+        if(depth > 0) and url not in skip:
+            print(c_run(url, depth, depth, skip, rated))
     except KeyboardInterrupt:
         print("\nStopped.(Run again to resume)")
     print("\nPlease wait while saving gathered rates...")
     with open(outputfile, 'w') as f:
-        for item in tuple(reversed(rated_list)):  # Get depth 1 first.
+        for item in tuple(reversed(rated)):  # Get depth 1 first.
             ''' Had the list been built from file upon resumption,
             it wouldn't have had the "\n".
             That's why I don't include it in the list itself: '''
