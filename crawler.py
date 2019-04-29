@@ -52,7 +52,7 @@ def crawler_run(url, orig_depth, cur_depth, processed_list, rated_list):
         print("%s(%d): Found locally." % (url, _depth))
     else:
         r = requests.get(url, allow_redirects=True)
-        open(cachefile, 'w').write(r.content)
+        open(cachefile, 'wb').write(r.content)
     print("%s(%d): Extracting links..." % (url, _depth))
     _next_depth = cur_depth-1
     _intern_cnt = 0
