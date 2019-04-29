@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 
 __author__ = 'eeshlomi'
 __version__ = '1.0'
@@ -12,7 +12,8 @@ try:
     import traceback
     from bs4 import BeautifulSoup, SoupStrainer
 except ImportError:
-    sys.exit("\nPython %s\n\nModule import error:\n%s\n" % (sys.version, sys.exc_info()[1]))
+    msg = "\nPython %s\n\nModule import error:\n%s\n"
+    sys.exit(msg % (sys.version, sys.exc_info()[1]))
 
 
 def crawler_run(url, orig_depth, cur_depth, processed_list, rated_list):
@@ -24,14 +25,17 @@ def crawler_run(url, orig_depth, cur_depth, processed_list, rated_list):
         if r.headers['content-type'][:9] != "text/html":
             return "%s(%d) skipped: Not a text/html page." % (url, _depth)
     except KeyError:
-        return "%s(%d) skipped: Could not determine whether it contains text/html." % (url, _depth)
+        msg = "%s(%d) skipped: No content-type header"
+        return msg % (url, _depth)
     except requests.exceptions.ConnectionError:
         return "%s(%d) skipped: Not found." % (url, _depth)
     except requests.exceptions.SSLError:
         return "%s(%d) skipped: SSL certificate mismatch." % (url, _depth)
     except requests.exceptions.MissingSchema:
-        return "Halted: %s is not a valid URL. Please include preceding http/s\n" % (url)  # Bad URL in input(DEPTH as in input)
-    cachefile = url.split("//")[-1].replace("/", "_")  # "[1]" would've been faster but it fails with missing "//"
+        msg = "Halted: %s does not include preceding http/s\n"
+        return msg % (url)  # Bad URL in input(DEPTH as in input)
+    # "[1]" would've been faster but it fails with missing "//":
+    cachefile = url.split("//")[-1].replace("/", "_")
     domain = cachefile.split("_")[0]
     cachefile = "tmp_cache/"+cachefile
     tslocal = tsonline = 0
@@ -39,10 +43,12 @@ def crawler_run(url, orig_depth, cur_depth, processed_list, rated_list):
         tslocal = os.stat(cachefile).st_mtime
         try:
             tsonline = time.mktime(time.strptime(r.headers['Last-Modified'], "%a, %d %b %Y %H:%M:%S %Z"))
-        except(KeyError, ValueError):  # Header doesn't exist or has unknown format. Give a 24-hour TTL
+        # Header doesn't exist or has unknown format. Give a 24-hour TTL:
+        except(KeyError, ValueError):
             if(tslocal + 86400) < time.time():
                 tslocal = 0
-    if(tslocal > tsonline):  # Also true if both have the same version, because download timestamp is higher.
+    # Also true if both are the same, because of the download timestamp:
+    if(tslocal > tsonline):
         print("%s(%d): Found locally." % (url, _depth))
     else:
         r = requests.get(url, allow_redirects=True)
@@ -63,7 +69,8 @@ def crawler_run(url, orig_depth, cur_depth, processed_list, rated_list):
                     try:
                         if(_next_depth > 0) and _next_url not in processed_list:
                             print(crawler_run(_next_url, orig_depth, _next_depth, processed_list, rated_list))
-                    except Exception:  # For a non-handled error, show Traceback and continue the recursion:
+                    # For a non-handled error, show Traceback and continue the recursion:
+                    except Exception:
                         print(traceback.format_exc())
         try:
             _ratio = round(float(_intern_cnt) / (_intern_cnt + _extern_cnt), 2)
@@ -84,7 +91,8 @@ def crawler(url, depth):
         with open(outputfile) as f:
             for line in f:
                 processed_list.append(line.split('\t')[0])
-                rated_list.insert(0, line.split('\n')[0])  # List is reversed upon save-to-disk
+                # rated_list is reversed upon save-to-disk:
+                rated_list.insert(0, line.split('\n')[0])
     url = re.split(r'#|\?', url)[0]
     try:
         if(depth > 0) and url not in processed_list:
@@ -94,7 +102,10 @@ def crawler(url, depth):
     print("\nPlease wait while saving gathered rates...")
     with open(outputfile, 'w') as f:
         for item in tuple(reversed(rated_list)):  # Get depth 1 first.
-            f.write(item+"\n")  # Had the list been built from file upon resumption it wouldn't have the "\n". That's why I don't include it in the list itself.
+            ''' Had the list been built from file upon resumption,
+            it wouldn't have the "\n".
+            That's why I don't include it in the list itself: '''
+            f.write(item+"\n")
     return("\nOutput file is %s\n" % (outputfile))
 
 
