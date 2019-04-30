@@ -70,7 +70,7 @@ def c_run(url, o_depth, c_depth, skip, rated):
     _intern_cnt = 0
     _extern_cnt = 0
     with open(cachefile, 'r') as f:
-        for link in BeautifulSoup(f.read(), 'lxml').find_all('a'):
+        for link in BeautifulSoup(f.read(), 'html.parser').find_all('a'):
             if link.has_attr('href'):
                 n_url = re.split(r'#|\?', link['href'])[0]
                 n_domain = n_url.split("//")[-1].split("/")[0]
