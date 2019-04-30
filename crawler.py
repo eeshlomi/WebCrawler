@@ -10,7 +10,7 @@ try:
     import re
     import requests
     import traceback
-    from bs4 import BeautifulSoup, SoupStrainer
+    from bs4 import BeautifulSoup
 except ImportError:
     msg = "\nPython %s\n\nModule import error:\n%s\n"
     sys.exit(msg % (sys.version, sys.exc_info()[1]))
@@ -70,7 +70,7 @@ def c_run(url, o_depth, c_depth, skip, rated):
     _intern_cnt = 0
     _extern_cnt = 0
     with open(cachefile, 'r') as f:
-        for link in BeautifulSoup(f.read(), parse_only=SoupStrainer('a'), features='html.parser'):
+        for link in BeautifulSoup(f.read(), 'lxml').find_all('a'):
             if link.has_attr('href'):
                 n_url = re.split(r'#|\?', link['href'])[0]
                 n_domain = n_url.split("//")[-1].split("/")[0]
